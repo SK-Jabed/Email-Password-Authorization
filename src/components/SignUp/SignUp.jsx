@@ -40,9 +40,27 @@ const SignUp = () => {
 
         createUserWithEmailAndPassword(auth, email, password)
         .then(result => {
-            console.log(result.user);
-            setSuccess(true);
+          console.log(result.user);
+          setSuccess(true);
+
+          // send verification email address
+          sendEmailVerification(auth.currentUser).then(() => {
+            console.log("verification email sent");
+          });
+
+          // update Profile name and photo url
+          const profile = {
+            displayName: name,
+            photoURL: photo,
+          };
+          updateProfile(auth.currentUser, profile)
+            .then(() => {
+              console.log("user profile updated");
+            })
+            .catch((error) => console.log("User profile update error"));
         })
+
+        
         .catch(error => {
             console.log("ERROR", error.message);
             setErrorMessage(error.message);
@@ -54,7 +72,7 @@ const SignUp = () => {
     return (
       <div className="mt-12">
         <div className="card bg-base-100 w-full max-w-sm shrink-0 shadow-2xl mx-auto">
-          <h2 className="text-3xl font-semibold text-center mb-2">Sign Up</h2>
+          <h2 className="text-3xl font-semibold text-center my-2">Sign Up</h2>
           <form onSubmit={handleSignUp} className="card-body">
             <div className="form-control">
               <label className="label">
