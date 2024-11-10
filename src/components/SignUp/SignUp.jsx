@@ -1,26 +1,52 @@
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import React, { useState } from 'react';
 import { auth } from '../../firebase.init';
+import { ImEye } from "react-icons/im";
+import { ImEyeBlocked } from "react-icons/im";
 
 const SignUp = () => {
     const [errorMessage, setErrorMessage] = useState("");
+    const [success, setSuccess] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
 
     const handleSignUp = (event) => {
         event.preventDefault();
         const email = event.target.email.value;
         const password = event.target.password.value;
-        console.log(email, password);
+        const terms = event.target.terms.checked;
+        console.log(email, password, terms);
 
         // Reset Error and Status
         setErrorMessage("");
 
+        if (password.length < 6) {
+            setErrorMessage("Password should be 6 characters or longer");
+            return;
+        }
+
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/;
+
+        if (!passwordRegex.test(password)) {
+           setErrorMessage(
+             "At least one uppercase, one lowercase, one number, one special character"
+           );
+           return;
+        }
+
+        if (!terms) {
+            setErrorMessage("Please accept our Terms and Conditions");
+            return;
+        }
+
         createUserWithEmailAndPassword(auth, email, password)
         .then(result => {
             console.log(result.user);
+            setSuccess(true);
         })
         .catch(error => {
             console.log("ERROR", error.message);
             setErrorMessage(error.message);
+            setSuccess(false);
         })
     }
 
@@ -42,21 +68,33 @@ const SignUp = () => {
                 required
               />
             </div>
-            <div className="form-control">
+            <div className="form-control relative">
               <label className="label">
                 <span className="label-text">Password</span>
               </label>
               <input
-                type="password"
+                type={showPassword ? "text" : "password"}
                 name="password"
                 placeholder="password"
                 className="input input-bordered"
                 required
               />
+              <button
+                onClick={() => setShowPassword(!showPassword)}
+                className="btn btn-xs absolute right-2 top-12 rounded-full"
+              >
+                {showPassword ? <ImEyeBlocked /> : <ImEye />}
+              </button>
               <label className="label">
                 <a href="#" className="label-text-alt link link-hover">
                   Forgot password?
                 </a>
+              </label>
+            </div>
+            <div className="form-control">
+              <label className="label justify-start gap-2 cursor-pointer items-center">
+                <input type="checkbox" name="terms" className="checkbox h-5 w-5" />
+                <span className="label-text font-semibold">Accept our Terms and Conditions</span>
               </label>
             </div>
             <div className="form-control mt-6">
@@ -68,6 +106,7 @@ const SignUp = () => {
               {errorMessage}
             </p>
           )}
+          {success && <p className="text-green-400 p-4">Sign Up Successful</p>}
         </div>
       </div>
     );
